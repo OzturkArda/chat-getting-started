@@ -1,17 +1,16 @@
 package io.axoniq.labs.chat.commandmodel;
 
-import io.axoniq.labs.chat.coreapi.CreateRoomCommand;
-import io.axoniq.labs.chat.coreapi.JoinRoomCommand;
-import io.axoniq.labs.chat.coreapi.ParticipantJoinedRoomEvent;
-import io.axoniq.labs.chat.coreapi.RoomCreatedEvent;
+import io.axoniq.labs.chat.coreapi.*;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.commandhandling.model.AggregateIdentifier;
 import org.axonframework.eventsourcing.EventSourcingHandler;
+import org.axonframework.spring.stereotype.Aggregate;
 
 import java.util.*;
 
 import static org.axonframework.commandhandling.model.AggregateLifecycle.apply;
 
+@Aggregate
 public class ChatRoom {
 
     @AggregateIdentifier
@@ -33,6 +32,20 @@ public class ChatRoom {
         }
     }
 
+    @CommandHandler
+    public void handle(LeaveRoomCommand command){
+        if(participants.contains(command.getParticipant())){
+            apply(new ParticipantLeftRoomEvent(command.getParticipant(), command.getRoomId()));
+        }
+    }
+
+    @CommandHandler
+    public void handle(PostMessageCommand command) {
+        if(participants.contains(command.getParticipant())){
+            apply(new MessagePostedEvent(command.getParticipant(), roomId, command.getMessage()));
+        }
+    }
+
     @EventSourcingHandler
     public void on(RoomCreatedEvent event){
         this.roomId = event.getRoomId();
@@ -43,6 +56,11 @@ public class ChatRoom {
     @EventSourcingHandler
     protected void on(ParticipantJoinedRoomEvent event){
         this.participants.add(event.getParticipant());
+    }
+
+    @EventSourcingHandler
+    protected void on(ParticipantLeftRoomEvent event){
+        this.participants.remove(event.getParticipant());
     }
 
 }

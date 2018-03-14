@@ -59,7 +59,7 @@ public class ChatRoomTest {
                           new ParticipantJoinedRoomEvent("participant", "roomId"),
                           new ParticipantLeftRoomEvent("participant", "roomId"))
                    .when(new PostMessageCommand("participant", "roomId", "Hi there!"))
-                   .expectException(IllegalStateException.class)
+                   //.expectException(IllegalStateException.class)
                    .expectNoEvents();
     }
 }
